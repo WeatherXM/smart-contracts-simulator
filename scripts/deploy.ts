@@ -1,11 +1,11 @@
 import { ethers, upgrades, network } from 'hardhat';
-import WeatherXMData from './artifacts/src/WeatherXMData.sol/WeatherXMData.json';
-import WeatherXM from './artifacts/src/WeatherXM.sol/WeatherXM.json';
-import WeatherStationXM from './artifacts/src/WeatherStationXM.sol/WeatherStationXM.json';
-import RewardPool from './artifacts/src/RewardPool.sol/RewardPool.json';
-import BurnPool from './artifacts/src/BurnPool.sol/BurnPool.json';
-import PriceFeedConsumer from './artifacts/src/PriceFeedConsumer.sol/PriceFeedConsumer.json';
-import MockV3Aggregator from './artifacts/src/mocks/oracle/MockV3Aggregator.sol/MockV3Aggregator.json';
+import WeatherXMData from '../artifacts/src/WeatherXMData.sol/WeatherXMData.json';
+import WeatherXM from '../artifacts/src/WeatherXM.sol/WeatherXM.json';
+import WeatherStationXM from '../artifacts/src/WeatherStationXM.sol/WeatherStationXM.json';
+import RewardPool from '../artifacts/src/RewardPool.sol/RewardPool.json';
+import BurnPool from '../artifacts/src/BurnPool.sol/BurnPool.json';
+import PriceFeedConsumer from '../artifacts/src/PriceFeedConsumer.sol/PriceFeedConsumer.json';
+import MockV3Aggregator from '../artifacts/src/mocks/oracle/MockV3Aggregator.sol/MockV3Aggregator.json';
 import fs from 'fs';
 import path from 'path';
 import { Contract } from 'ethers';
