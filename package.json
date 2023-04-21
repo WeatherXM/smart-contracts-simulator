@@ -1,0 +1,20 @@
+{
+  "name": "smart-contracts-simulator",
+  "devDependencies": {
+    "@chainlink/contracts": "^0.6.1",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@openzeppelin/contracts": "^4.8.3",
+    "@openzeppelin/contracts-upgradeable": "^4.8.3",
+    "@openzeppelin/hardhat-upgrades": "^1.22.1",
+    "@openzeppelin/merkle-tree": "^1.0.4",
+    "@typechain/hardhat": "^6.1.5",
+    "dotenv": "^16.0.3",
+    "hardhat": "^2.14.0",
+    "react-dropdown": "^1.11.0",
+    "react-native": "^0.71.7",
+    "react-native-dropdown-picker": "^5.4.6",
+    "weatherXM": "eval $(grep '^GITHUB_PERSONAL_ACCESS_TOKEN' .env) && git clone git+https://$GITHUB_PERSONAL_ACCESS_TOKEN:x-oauth-basic@github.com:WeatherXM/smart-contracts.git#develop"
+  }
+}
