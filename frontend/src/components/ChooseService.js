@@ -9,7 +9,7 @@ export function ChooseService({ requestService, tokenSymbol }) {
 
 	return (
 		<div>
-			<h4>Choose Service</h4>
+			<h3>1. Choose Service</h3>
 			<form
 				onSubmit={(event) => {
 					// This function just calls the transferTokens callback with the
@@ -20,7 +20,6 @@ export function ChooseService({ requestService, tokenSymbol }) {
 					const formData = new FormData(event.target);
 					const service = formData.get("service");
 					const period = formData.get("period");
-					const amount = formData.get("amount");
 					if (service && period) {
 						requestService(service, period);
 					}
@@ -28,10 +27,8 @@ export function ChooseService({ requestService, tokenSymbol }) {
 			>
 				<div className="form-group">
 					<label>Choose Service:</label>
-					<button>
-						<Dropdown options={options} name="service" value={defaultOption} placeholder="Select an option" />
-					</button>
-					{/* <input className="form-control" type="text" name="service" required /> */}
+					<input className="form-control" type="text" name="service" required >
+					</input>
 				</div>
 				<div className="form-group">
 					<label>Period (in days)</label>

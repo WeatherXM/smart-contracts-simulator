@@ -1,4 +1,5 @@
 import React from "react";
+import ClipLoader from "react-spinners/ClipLoader";
 
 // We'll use ethers to interact with the Ethereum network and our contract
 import { ethers } from "ethers";
@@ -17,6 +18,7 @@ import { Loading } from "./Loading";
 import { Transfer } from "./Transfer";
 import { PurchaseService } from "./PurchaseService";
 import { ChooseService } from "./ChooseService";
+import { ValidateProofOfBurn } from "./ValidateProofOfBurn.js"
 import { TransactionErrorMessage } from "./TransactionErrorMessage";
 import { WaitingForTransactionMessage } from "./WaitingForTransactionMessage";
 import { NoTokensMessage } from "./NoTokensMessage";
@@ -29,6 +31,11 @@ const HARDHAT_NETWORK_ID = "1337";
 // This is an error code that indicates that the user canceled a transaction
 const ERROR_CODE_TX_REJECTED_BY_USER = 4001;
 
+const override = {
+	display: "block",
+	margin: "0 auto",
+	borderColor: "blue",
+  };
 // This component is in charge of doing these things:
 //   1. It connects to the user's wallet
 //   2. Initializes ethers and the Token contract
@@ -43,9 +50,10 @@ export class Dapp extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = { value: "" };
-
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleSubmitApproveBurn = this.handleSubmitApproveBurn.bind(this);
+		this.state = { hasError: false }
 		// We store multiple things in Dapp's state.
 		// You don't need to follow this pattern, but it's an useful example.
 		this.initialState = {
@@ -64,11 +72,15 @@ export class Dapp extends React.Component {
 			txBeingSent: undefined,
 			transactionError: undefined,
 			networkError: undefined,
-			period: undefined,
-			service: undefined,
-			wxmAmount: undefined,
-			usdAmount: undefined,
-			wxmPrice: undefined
+			purchaseOrder: {serviceID: undefined, wxmAmount: undefined, usdAmount: undefined, service: undefined, amount: undefined, period: undefined},
+			loading: false,
+			error: undefined,
+			burnForServiceHash: undefined,
+			validatedProofOfBurn: false,
+			purchaseOrderApproval: false,
+			claimedAmount: undefined,
+			claimedAddress: undefined,
+			claimedHash: undefined
 		};
 
 		this.state = this.initialState;
@@ -110,7 +122,7 @@ export class Dapp extends React.Component {
 				<div className="row">
 					<div className="col-12">
 						<h1>
-							{this.state.tokenData.name} ({this.state.tokenData.symbol})
+							{this.state.tokenData.name} Demo
 						</h1>
 						<p>
 							Welcome <b>{this.state.selectedAddress}</b>, you have:{" "}
@@ -118,15 +130,21 @@ export class Dapp extends React.Component {
 						<p>
 							<b>
 								{this.state.balance.toString()} {this.state.tokenData.symbol}{" "}
-								Balance
+								BALANCE
 							</b>
 						</p>
 						<p>
 							<b>
 								{this.state.allocatedRewards.toString()}{" "}
-								{this.state.tokenData.symbol} Allocated Rewards
+								{this.state.tokenData.symbol} ALLOCATED REWARDS
 							</b>
 						</p>
+						{/* <p>
+							<b>
+								{this.state.allowance.toString()}{" "}
+								{this.state.tokenData.symbol} APPROVED TOKENS TO <b>BurnPool</b>
+							</b>
+						</p> */}
 						<p>
 							{/* <b>
             		{this.state.allowance.toString()} {this.state.tokenData.symbol} Approved
@@ -141,11 +159,41 @@ export class Dapp extends React.Component {
 									onChange={this.handleChange}
 								/>
 							</label>
-							<input type="submit" value="Claim" />
+							<br></br>
+							<input className="btn btn-primary" type="submit" value="Claim" />
 						</form>
 					</div>
 				</div>
+				<div className="row">
+					<div className="col-12">
+						{/* 						
+              If the user has no tokens, we don't show the Transfer form
+            */}
+				{/*
+              This component displays a form that the user can use to send a 
+              transaction and transfer some tokens.
+              The component doesn't have logic, it just calls the transferTokens
+              callback.
+            */}
+						{this.state.claimedAmount > 0 && (
+							
+							<div>
+								<hr />
+								<label><h3>Claiming Transaction Logs</h3></label>
+								<p>
+									<b>HASH: {this.state.claimedHash}</b>
+								</p>
+								<p>
+									<b>CLAIMED ADDRESS: {this.state.claimedAddress}</b>
+								</p>
+								<p>
+									<b>CLAIMED AMOUNT: {this.state.claimedAmount}</b>
+								</p>
 
+							</div>
+						)}
+					</div>
+				</div>
 				<hr />
 
 				<div className="row">
@@ -171,7 +219,6 @@ export class Dapp extends React.Component {
 						)}
 					</div>
 				</div>
-
 				<div className="row">
 					<div className="col-12">
 						{/* 						
@@ -197,6 +244,7 @@ export class Dapp extends React.Component {
 						)}
 					</div>
 				</div>
+				<br></br>
 				<div className="row">
 					<div className="col-12">
 						{/* 						
@@ -208,30 +256,44 @@ export class Dapp extends React.Component {
               The component doesn't have logic, it just calls the transferTokens
               callback.
             */}
-						{this.state.wxmPrice > 0 && (
+						{this.state.purchaseOrder.period > 0 && (
+							
 							<div>
+								<hr />
+								<label><h3>2. Purchase Order Details</h3></label>
 								<p>
-									<b>WXM/USD Price from Oracle: {this.state.wxmPrice}</b>
+									<b>WXM/USD Price from Oracle: {this.state.purchaseOrder.wxmPrice}</b>
+								</p>
+								<p>
+									<b>PERIOD IN DAYS: {this.state.purchaseOrder.period}</b>
 								</p>
 								<p>
 									<b>
-										TOTAL USD COST FOR SERVICE: {this.state.usdAmount}
+										USD COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: {this.state.purchaseOrder.usdAmount}$
 									</b>
 								</p>
 								<p>
 									<b>
-										TOTAL WXM COST FOR SERVICE: {this.state.wxmAmount}
+										WXM COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: {this.state.purchaseOrder.wxmAmount} WXM
 									</b>
 								</p>
-								
+								<p>
+									<b>
+										PURCHASE ORDER IDENTIFIER: {this.state.purchaseOrder.serviceID}
+									</b>
+								</p>
+								<form onSubmit={this.handleSubmitApproveBurn}>
+									<input className="btn btn-primary" type="submit" value="Approve & Burn" />
+								</form>
+
 							</div>
 						)}
 					</div>
 				</div>
-				<button type="button" onClick={this._burnTokens()}>
-					Approve & Burn
-				</button>
+				<br></br>
+				
 				<div className="row">
+					<div className="col-12">
 					
 
 						{/*
@@ -240,35 +302,106 @@ export class Dapp extends React.Component {
               The component doesn't have logic, it just calls the transferTokens
               callback.
             */}
-						{this.state.proofOfBurnServiceID !== "" && (
+						{this.state.burnForServiceHash && !this.state.loading && (
 							<div>
+								<hr />
+								<label><h3>3. Burning Transaction Logs (Proof-of-Burn)</h3></label>
 								<p>
-									<b>Proof of Burn Amount: {this.state.proofOfBurnAmount}</b>
+									<b>HASH: {this.state.burnForServiceHash}</b>
+								</p>
+								<p>
+									<b>AMOUNT: {this.state.proofOfBurnAmount} WXM</b>
 								</p>
 								<p>
 									<b>
-										Proof of Burn ServiceID: {this.state.proofOfBurnServiceID}
+										PURCHASE ORDER IDENTIFIER: {this.state.proofOfBurnServiceID}
 									</b>
 								</p>
 								<p>
-									<b>Proof of Burn WXM Price: {this.state.proofOfBurnPrice}</b>
+									<b>WXM PRICE: {this.state.proofOfBurnPrice}</b>
 								</p>
-								{this.state.proofOfBurnServiceID && (
-									<div>
-										<p>
-											<b>
-												SUCCESS!!! Go find the service{" "}
-												{this.state.proofOfBurnServiceID} into the WeatherXM
-												Platform!
-											</b>
-										</p>
-									</div>
-								)}
 							</div>
 						)}
 						{JSON.stringify(this.state.proofOfBurnServiceID) !== "" && (
 							<div></div>
 						)}
+					</div>
+					</div>
+					
+					<div className="row">
+						<div className="col-12">
+							{/* 						
+				If the user has no tokens, we don't show the Transfer form
+				*/}
+
+
+							{/*
+				This component displays a form that the user can use to send a 
+				transaction and transfer some tokens.
+				The component doesn't have logic, it just calls the transferTokens
+				callback.
+				*/}
+							{this.state.burnForServiceHash > 0 && !this.state.loading && (
+								<div>
+									<hr />
+									<ValidateProofOfBurn
+										validateProofOfBurn={(identifier, hash) =>
+											this._validateProofOfBurn(identifier, hash)
+										}
+										tokenSymbol={this.state.tokenData.symbol}
+									/>
+								</div>
+							)}
+						</div>
+					</div>
+					<div className="row">
+						<div className="col-12">
+						{this.state.validatedProofOfBurn && !this.state.loading && (
+										<div>
+											<hr />
+											<h3>
+												<b>
+													SUCCESS!!! Go find the service{" "}
+													{this.state.proofOfBurnServiceID} into the WeatherXM
+													Platform!
+												</b>
+											</h3>
+										</div>
+							)}
+						</div>
+					</div>
+					
+					
+					
+					<div className="row">
+					<div className="col-12">
+					
+
+						{/*
+              This component displays a form that the user can use to send a 
+              transaction and transfer some tokens.
+              The component doesn't have logic, it just calls the transferTokens
+              callback.
+            */}
+						{this.state.hasError && (
+							<div>
+							<hr />
+							<p>Something went wrong 😭</p>
+							{this.state.error.message && <span>Here's the error: {this.state.error.message}</span>}
+						  </div>
+						)}
+					</div>
+					</div>
+					<div className="sweet-loading" >
+						<ClipLoader
+						cssOverride={override}
+						size={150}
+						color={"#123abc"}
+						loading={this.state.loading}
+						speedMultiplier={0.8}
+						aria-label="Loading Spinner"
+						data-testid="loader"
+						/>
 					</div>
 				</div>
 		);
@@ -381,13 +514,15 @@ export class Dapp extends React.Component {
 			() => this._updateAllocatedRewards(),
 			2000
 		);
-		this._pollDataInterval = setInterval(() => this._updateProofOfBurn(), 2000);
+		this._pollDataInterval = setInterval(() => this._updateProofOfBurn(), 3000);
 
 		// We run it once immediately so we don't have to wait for it
+		this._captureClaimedEvent();
 		this._updateBalance();
 		this._updateAllowance();
 		this._updateProofOfBurn();
 		this._updateAllocatedRewards();
+		this._updateClaimedReceipt();
 	}
 
 	_stopPollingData() {
@@ -423,6 +558,26 @@ export class Dapp extends React.Component {
 		this.setState({ allowance });
 	}
 
+	async _updateClaimedReceipt() {
+		this._rewardPool.on(
+			"Claimed",
+			(account, amount, event) => {
+				let ClaimedEvent = {
+					account: account,
+					amount: ethers.utils.formatUnits(amount.toString(), "ether")
+				};
+				const claimedAmount = ClaimedEvent.amount;
+				const claimedAddress = ClaimedEvent.from;
+				this.state.loading = false;
+				this.setState({
+					claimedAmount,
+					claimedAddress,
+				});
+				
+			}
+		);
+	}
+
 	async _updateProofOfBurn() {
 		this._burnPool.on(
 			"BurnedForService",
@@ -439,77 +594,159 @@ export class Dapp extends React.Component {
 				const proofOfBurnServiceID = proofOfBurnEvent.service;
 
 				console.log(JSON.stringify(proofOfBurnEvent, null, 5));
-
+				this.state.loading = false;
 				this.setState({
 					proofOfBurnAmount,
 					proofOfBurnServiceID,
 					proofOfBurnPrice,
 				});
+				
+			}
+		);
+	}
+
+	async _captureClaimedEvent() {
+		this._rewardPool.on(
+			"Claimed",
+			(from, amount, event) => {
+				this.state.loading = false;
 			}
 		);
 	}
 
 	async _updateAllocatedRewards() {
-		const latestCycle = await this._token.getCycle();
-		console.log(latestCycle);
-		console.log(ethers.utils.getAddress(this.state.selectedAddress));
-		const allocatedRewards = await getAllocatedRewards(
-			latestCycle,
-			ethers.utils.getAddress(this.state.selectedAddress),
-			this._provider
-		);
-		this.setState({ allocatedRewards });
+		try{
+			const latestCycle = await this._token.getCycle();
+			console.log(latestCycle);
+			console.log(ethers.utils.getAddress(this.state.selectedAddress));
+			const allocatedRewards = await getAllocatedRewards(
+				latestCycle,
+				ethers.utils.getAddress(this.state.selectedAddress),
+				this._provider
+			);
+			this.setState({ allocatedRewards });
+		}catch(err){
+			this.state.loading = false;
+			this.state.hasError = true;
+			this.state.error = err;
+		}
+		
 	}
 	handleChange(event) {
 		this.setState({ value: event.target.value });
 	}
 
 	handleSubmit(event) {
+		this.state.loading = true;
 		alert("The submitted amount to claim " + this.state.value);
 		this._claim(this.state.value);
 		event.preventDefault();
 	}
 
+	handleSubmitApproveBurn(event) {
+		this._burnTokens();
+		event.preventDefault();
+	}
+	
 	async _claim(amount) {
 		console.log("Amount to be claimed: " + amount);
 		const latestCycle = await this._token.getCycle();
 		console.log(ethers.utils.getAddress(this.state.selectedAddress));
-		await this._rewardPool.claim(
-			ethers.utils.parseEther(String(amount)),
-			ethers.utils.parseEther(
-				proofs[ethers.utils.getAddress(this.state.selectedAddress)]
-					.cumulativeAmount
-			),
-			latestCycle,
-			proofs[ethers.utils.getAddress(this.state.selectedAddress)].proof
-		);
+		try{
+			let transaction = await this._rewardPool.claim(
+				ethers.utils.parseEther(String(amount)),
+				ethers.utils.parseEther(
+					proofs[ethers.utils.getAddress(this.state.selectedAddress)]
+						.cumulativeAmount
+				),
+				latestCycle,
+				proofs[ethers.utils.getAddress(this.state.selectedAddress)].proof
+			);
+			this.state.claimedHash = transaction.hash;
+		}catch(err){
+			this.state.loading = false;
+			this.state.hasError = true;
+			this.state.error = err;
+		}
+		
 	}
 	async _requestService(service, period) {
 		let dailyAmount;
 		let timestamp;
+		this.state.purchaseOrder.period = period;
+		this.state.purchaseOrder.service = service;
 		if (service == "Weather Forecast") {
 			dailyAmount = 0.5;
 		}else if( service == "Raw Data") {
 			dailyAmount = 0.3;
 		}
-		let oracle = this._oraclePrice.getLatestPrice()
-		this.state.wxmPrice = oracle.price
-		console.log(oracle)
-		this.state.usdAmount = dailyAmount * period;
-		this.state.wxmAmount = this.state.usdAmount / this.state.wxmPrice;
+		let oracle = await this._oraclePrice.getLatestPrice()
+		
+		this.state.purchaseOrder.wxmPrice = ethers.utils.formatUnits(oracle[0].toString(), "ether") 
+		
+		this.state.purchaseOrder.usdAmount = dailyAmount * period;
+		this.state.purchaseOrder.wxmAmount =Number(this.state.purchaseOrder.usdAmount / this.state.purchaseOrder.wxmPrice).toFixed(1);
+		this.state.purchaseOrder.serviceID = String(service.replace(/\s/g, '')+period+10049)
+		this.state.purchaseOrderApproval = true
 	}
 
 	async _burnTokens() {
-		await this._token.approve(
-			config.burnPoolAddress,
-			ethers.utils.parseEther(String(this.state.wxmAmount))
-		);
-		//talk tothe billing system
-		await this._burnPool.burnForService(
-			ethers.utils.parseEther(String(this.state.wxmAmount)),
-			"WeatherForecast1873291329173"
-		);
-		//
+		try{
+			this.state.loading = true;
+			await this._token.approve(
+				config.burnPoolAddress,
+				ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount))
+			);
+			//talk to the billing system
+			let transaction = await this._burnPool.burnForService(
+				ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount)),
+				this.state.purchaseOrder.serviceID
+			);
+			this.state.burnForServiceHash = transaction.hash
+		}catch(err){
+			this.state.loading = false;
+			this.state.hasError = true;
+			this.state.error = err;
+		}
+		
+	}
+
+	async _validateProofOfBurn(identifier, hash) {
+		let receipt = await this._provider.getTransactionReceipt(hash);
+		const signature = 'BurnedForService(address,uint256,int,uint,string)';
+		let fragment = ethers.utils.EventFragment.from(signature)
+		let emptyIface = new ethers.utils.Interface([])
+		let topicHash = emptyIface.getEventTopic(fragment)
+		console.log(topicHash)
+		const topic = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(signature))
+		console.log(ethers.utils.keccak256(ethers.utils.toUtf8Bytes('BurnedForService(address,uint256,int,uint,string)')))
+		receipt.logs.map(log => {
+			if(log.topics[0] === topicHash){				
+				const result = ethers.utils.defaultAbiCoder.decode(['address', 'uint256', 'int', 'uint', 'string'],log.data)
+				if(ethers.utils.formatUnits(result[1].toString(), "ether")==this.state.purchaseOrder.wxmAmount){
+					this.state.validatedProofOfBurn = true
+				}
+			}
+		})
+		console.log(receipt)
+		// const eventSignature = 'BurnedForService(address,uint256,int,uint,string)';
+		// // const topic = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(eventSignature))
+		// // console.log(topic)
+		// const eventTopic = ethers.utils.id(eventSignature); // Get the data hex string
+		// console.log(eventTopic)
+		// let abi = [ "event BurnedForService(address from, uint256 amount, int price, uint timeStamp, string service)" ];
+		// let iface = new ethers.utils.Interface(abi);
+		receipt.logs.forEach((log) => {
+			log.topics.forEach((topic)=>{
+				console.log(topic);
+			})
+		});
+		//const log = receipt.logs.filter(event => iface.parseLog(event));
+		// let log = iface.parseLog(receipt.logs[1]); // here you can add your own logic to find the correct log
+		// const {from, amount, price, timeStamp, service} = log.args;
+		// console.log(from, amount, price, timeStamp, service)
+		//const event = transaction.logs.filter(event => console.log(event));
+		//console.log(event);
 	}
 
 	// async _burnTokens() {

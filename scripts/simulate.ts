@@ -20,7 +20,7 @@ async function main() {
   let rewards = [
     [await addr2.getAddress(), ethers.utils.parseEther(String(10.0))],
     [await addr3.getAddress(), ethers.utils.parseEther(String(60.0))],
-    [await addr4.getAddress(), ethers.utils.parseEther(String(118.3))],
+    [await addr4.getAddress(), ethers.utils.parseEther(String(48.3))],
     [await addr5.getAddress(), ethers.utils.parseEther(String(30.0))],
     [await addr6.getAddress(), ethers.utils.parseEther(String(10.0))],
     [await addr7.getAddress(), ethers.utils.parseEther(String(10.0))],
