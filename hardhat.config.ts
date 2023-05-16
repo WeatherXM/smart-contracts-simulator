@@ -34,9 +34,9 @@ const hardhatConfig: HardhatUserConfig = {
     compilers: [{ ...compilerConfig('0.8.18') }]
   },
   paths: {
-    sources: "./src",
-    cache: './cache',
-    artifacts: './artifacts'
+    sources: './src',
+    cache: './scripts/cache',
+    artifacts: './scripts/artifacts'
   },
   typechain: {
     outDir: 'types/generated',
