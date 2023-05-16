@@ -179,7 +179,7 @@ export class Dapp extends React.Component {
 							
 							<div>
 								<hr />
-								<label><h3>Claiming Transaction Logs</h3></label>
+								<label><h3>Claiming Transaction: Completed</h3></label>
 								<p>
 									<b>HASH: {this.state.claimedHash}</b>
 								</p>
@@ -262,25 +262,22 @@ export class Dapp extends React.Component {
 								<hr />
 								<label><h3>2. Purchase Order Details</h3></label>
 								<p>
-									<b>WXM/USD Price from Oracle: {this.state.purchaseOrder.wxmPrice}</b>
+									PURCHASE ORDER IDENTIFIER: <b>{this.state.purchaseOrder.serviceID}</b>
 								</p>
 								<p>
-									<b>PERIOD IN DAYS: {this.state.purchaseOrder.period}</b>
+									PERIOD: <b>{this.state.purchaseOrder.period} DAYS</b>
 								</p>
 								<p>
-									<b>
-										USD COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: {this.state.purchaseOrder.usdAmount}$
-									</b>
+									
+									USD COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: <b>{this.state.purchaseOrder.usdAmount} $</b>
 								</p>
 								<p>
-									<b>
-										WXM COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: {this.state.purchaseOrder.wxmAmount} WXM
-									</b>
+									WXM/USD Price from Oracle: <b>{this.state.purchaseOrder.wxmPrice}</b>
 								</p>
 								<p>
-									<b>
-										PURCHASE ORDER IDENTIFIER: {this.state.purchaseOrder.serviceID}
-									</b>
+									
+									WXM COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: <b>{this.state.purchaseOrder.usdAmount}$ / {this.state.purchaseOrder.wxmPrice} = {this.state.purchaseOrder.wxmAmount} WXM</b>
+									
 								</p>
 								<form onSubmit={this.handleSubmitApproveBurn}>
 									<input className="btn btn-primary" type="submit" value="Approve & Burn" />
@@ -305,20 +302,18 @@ export class Dapp extends React.Component {
 						{this.state.burnForServiceHash && !this.state.loading && (
 							<div>
 								<hr />
-								<label><h3>3. Burning Transaction Logs (Proof-of-Burn)</h3></label>
+								<label><h3>3. Burning Transaction (Proof-of-Burn): Completed</h3></label>
 								<p>
-									<b>HASH: {this.state.burnForServiceHash}</b>
+									HASH: <b>{this.state.burnForServiceHash}</b>
 								</p>
 								<p>
-									<b>AMOUNT: {this.state.proofOfBurnAmount} WXM</b>
+									AMOUNT: <b>{this.state.proofOfBurnAmount} WXM</b>
 								</p>
 								<p>
-									<b>
-										PURCHASE ORDER IDENTIFIER: {this.state.proofOfBurnServiceID}
-									</b>
+									PURCHASE ORDER IDENTIFIER: <b>{this.state.proofOfBurnServiceID}</b>
 								</p>
 								<p>
-									<b>WXM PRICE: {this.state.proofOfBurnPrice}</b>
+									WXM PRICE: <b>{this.state.proofOfBurnPrice}</b>
 								</p>
 							</div>
 						)}
@@ -361,20 +356,15 @@ export class Dapp extends React.Component {
 											<hr />
 											<h3>
 												<b>
-													SUCCESS!!! Go find the service{" "}
-													{this.state.proofOfBurnServiceID} into the WeatherXM
-													Platform!
+													SUCCESS!!!
 												</b>
 											</h3>
 										</div>
 							)}
 						</div>
 					</div>
-					
-					
-					
 					<div className="row">
-					<div className="col-12">
+					`<div className="col-12">
 					
 
 						{/*
@@ -562,12 +552,13 @@ export class Dapp extends React.Component {
 		this._rewardPool.on(
 			"Claimed",
 			(account, amount, event) => {
+				console.log(event)
 				let ClaimedEvent = {
 					account: account,
 					amount: ethers.utils.formatUnits(amount.toString(), "ether")
 				};
 				const claimedAmount = ClaimedEvent.amount;
-				const claimedAddress = ClaimedEvent.from;
+				const claimedAddress = ClaimedEvent.account;
 				this.state.loading = false;
 				this.setState({
 					claimedAmount,
@@ -652,6 +643,7 @@ export class Dapp extends React.Component {
 		console.log("Amount to be claimed: " + amount);
 		const latestCycle = await this._token.getCycle();
 		console.log(ethers.utils.getAddress(this.state.selectedAddress));
+		this.state.hasError = false;
 		try{
 			let transaction = await this._rewardPool.claim(
 				ethers.utils.parseEther(String(amount)),
@@ -671,26 +663,35 @@ export class Dapp extends React.Component {
 		
 	}
 	async _requestService(service, period) {
+		this.state.hasError = false;
 		let dailyAmount;
 		let timestamp;
 		this.state.purchaseOrder.period = period;
 		this.state.purchaseOrder.service = service;
+		//daily amount is the daily cost
 		if (service == "Weather Forecast") {
 			dailyAmount = 0.5;
 		}else if( service == "Raw Data") {
 			dailyAmount = 0.3;
+		} else if(service == 'Daily Weather History'){
+			dailyAmount = 0.35;
+		}else if( service == 'Hourly Weather History') {
+			dailyAmount = 0.32;
+		} else if(service == 'Analytics'){
+			dailyAmount = 0.85;
 		}
 		let oracle = await this._oraclePrice.getLatestPrice()
 		
 		this.state.purchaseOrder.wxmPrice = ethers.utils.formatUnits(oracle[0].toString(), "ether") 
 		
-		this.state.purchaseOrder.usdAmount = dailyAmount * period;
+		this.state.purchaseOrder.usdAmount = Number(dailyAmount * period).toFixed(1);
 		this.state.purchaseOrder.wxmAmount =Number(this.state.purchaseOrder.usdAmount / this.state.purchaseOrder.wxmPrice).toFixed(1);
 		this.state.purchaseOrder.serviceID = String(service.replace(/\s/g, '')+period+10049)
 		this.state.purchaseOrderApproval = true
 	}
 
 	async _burnTokens() {
+		this.state.hasError = false;
 		try{
 			this.state.loading = true;
 			await this._token.approve(
@@ -712,6 +713,8 @@ export class Dapp extends React.Component {
 	}
 
 	async _validateProofOfBurn(identifier, hash) {
+		this.state.hasError = false;
+		this.state.loading = true;
 		let receipt = await this._provider.getTransactionReceipt(hash);
 		const signature = 'BurnedForService(address,uint256,int,uint,string)';
 		let fragment = ethers.utils.EventFragment.from(signature)
@@ -723,39 +726,15 @@ export class Dapp extends React.Component {
 		receipt.logs.map(log => {
 			if(log.topics[0] === topicHash){				
 				const result = ethers.utils.defaultAbiCoder.decode(['address', 'uint256', 'int', 'uint', 'string'],log.data)
-				if(ethers.utils.formatUnits(result[1].toString(), "ether")==this.state.purchaseOrder.wxmAmount){
-					this.state.validatedProofOfBurn = true
+				if(Number(ethers.utils.formatUnits(result[1].toString(), "ether")*ethers.utils.formatUnits(result[2].toString(), "ether")).toFixed(1)==this.state.purchaseOrder.usdAmount 
+				&& this.state.purchaseOrder.serviceID==result[4].toString()){
+					this.state.loading = false;
+					this.state.validatedProofOfBurn = true;
 				}
 			}
-		})
-		console.log(receipt)
-		// const eventSignature = 'BurnedForService(address,uint256,int,uint,string)';
-		// // const topic = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(eventSignature))
-		// // console.log(topic)
-		// const eventTopic = ethers.utils.id(eventSignature); // Get the data hex string
-		// console.log(eventTopic)
-		// let abi = [ "event BurnedForService(address from, uint256 amount, int price, uint timeStamp, string service)" ];
-		// let iface = new ethers.utils.Interface(abi);
-		receipt.logs.forEach((log) => {
-			log.topics.forEach((topic)=>{
-				console.log(topic);
-			})
-		});
-		//const log = receipt.logs.filter(event => iface.parseLog(event));
-		// let log = iface.parseLog(receipt.logs[1]); // here you can add your own logic to find the correct log
-		// const {from, amount, price, timeStamp, service} = log.args;
-		// console.log(from, amount, price, timeStamp, service)
-		//const event = transaction.logs.filter(event => console.log(event));
-		//console.log(event);
+		})		
 	}
 
-	// async _burnTokens() {
-	//   console.log(this.state.totalUSD)
-	//   ;
-	// }
-	// This method sends an ethereum transaction to transfer tokens.
-	// While this action is specific to this application, it illustrates how to
-	// send a transaction.
 	async _transferTokens(to, amount) {
 		// Sending a transaction is a complex operation:
 		//   - The user can reject it

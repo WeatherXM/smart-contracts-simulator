@@ -27,8 +27,17 @@ export function ChooseService({ requestService, tokenSymbol }) {
 			>
 				<div className="form-group">
 					<label>Choose Service:</label>
-					<input className="form-control" type="text" name="service" required >
-					</input>
+					
+					<select name='service' className="btn btn-secondary dropdown-toggle">
+						<option className="dropdown-item" value="Weather Forecast">Weather Forecast (0.5$/day)</option>
+						<option className="dropdown-item" value="Raw Data">Raw Data (0.3$/day)</option>
+						<option value="Daily Weather History" className="dropdown-item">Daily Weather History (0.35$/day)</option>
+						<option value="Hourly Weather History" className="dropdown-item">Hourly Weather History (0.32$/day)</option>
+						<option value="Analytics" className="dropdown-item">Analytics (0.85$/day)</option>
+					</select>
+
+					{/* <input className="form-control" type="text" name="service" required >
+					</input> */}
 				</div>
 				<div className="form-group">
 					<label>Period (in days)</label>

@@ -3,7 +3,7 @@ import React from "react";
 export function ValidateProofOfBurn({ validateProofOfBurn, tokenSymbol }) {
 	return (
 		<div>
-			<h3>4. Validate Proof of Burn</h3>
+			<h3>4.Purchase Service</h3>
 			<form
 				onSubmit={(event) => {
 					// This function just calls the transferTokens callback with the
@@ -29,7 +29,7 @@ export function ValidateProofOfBurn({ validateProofOfBurn, tokenSymbol }) {
 					<input className="form-control" type="text" name="identifier" required />
 				</div>
 				<div className="form-group">
-					<input className="btn btn-primary" type="submit" value="Validate" />
+					<input className="btn btn-primary" type="submit" value="Purchase" />
 				</div>
 			</form>
 		</div>
