@@ -23,8 +23,8 @@ npx hardhat node
 3. Open another terminal and run scripts:
 
 ```
-npx hardhat run scripts/deploy.ts --network localhost
-npx hardhat run scripts/simulate.ts --network localhost
+npm run deploy
+npm run simulate
 ```
 
 4. After running the scripts, deploy the Dapp:
