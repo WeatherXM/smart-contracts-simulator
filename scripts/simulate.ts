@@ -20,13 +20,14 @@ async function main() {
   let rewards = [
     [await addr2.getAddress(), ethers.utils.parseEther(String(10.0))],
     [await addr3.getAddress(), ethers.utils.parseEther(String(60.0))],
-    [await addr4.getAddress(), ethers.utils.parseEther(String(118.3))],
+    [await addr4.getAddress(), ethers.utils.parseEther(String(48.3))],
     [await addr5.getAddress(), ethers.utils.parseEther(String(30.0))],
     [await addr6.getAddress(), ethers.utils.parseEther(String(10.0))],
     [await addr7.getAddress(), ethers.utils.parseEther(String(10.0))],
     [await addr8.getAddress(), ethers.utils.parseEther(String(10.0))],
     [await addr9.getAddress(), ethers.utils.parseEther(String(10.0))]
   ];
+  console.log(rewards)
   const tree = StandardMerkleTree.of(rewards, ['address', 'uint256']);
   interface Iproof {
     cumulativeAmount: {};
@@ -59,7 +60,7 @@ async function main() {
   mine(2);
   await token.connect(owner).setMintTarget(config.rewardPoolAddress);
   await token.connect(distributor).mint();
-  const dailyCumulativeRewards = ethers.utils.parseEther('10000');
+  const dailyCumulativeRewards = ethers.utils.parseEther('1000');
   await rewardPool
     .connect(distributor)
     .submitMerkleRoot(tree.root, dailyCumulativeRewards);
@@ -72,11 +73,14 @@ async function main() {
     JSON.stringify(tree.dump()),
     'utf-8'
   );
+  console.log("Generated tree json in: "+__dirname + '/../frontend/src/contracts/tree.json')
   fs.writeFileSync(
     __dirname + '/../frontend/src/contracts/proofs.json',
     JSON.stringify(proofs),
     'utf-8'
   );
+  console.log("Generated proofs in: "+__dirname + '/../frontend/src/contracts/proofs.json')
+
   await time.increase(90000);
 }
 
