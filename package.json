@@ -5,6 +5,8 @@
   "author": "",
   "license": "ISC",
   "scripts": {
+    "setup": "npm install && git submodule update --remote",
+    "node":"hardhat node",
     "compile": "hardahat compile",
     "deploy": "hardhat run scripts/deploy.ts --network localhost --no-compile",
     "simulate": "hardhat run scripts/simulate.ts --network localhost --no-compile"
