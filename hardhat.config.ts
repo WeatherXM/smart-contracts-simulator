@@ -34,7 +34,7 @@ const hardhatConfig: HardhatUserConfig = {
     compilers: [{ ...compilerConfig('0.8.18') }]
   },
   paths: {
-    sources: './src',
+    sources: './smart-contracts/src',
     cache: './scripts/cache',
     artifacts: './scripts/artifacts'
   },

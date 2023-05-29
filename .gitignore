@@ -7,4 +7,6 @@ typechain-types
 
 # Hardhat files
 types
-
+scripts/artifacts
+scripts/cache
+smart-contracts
