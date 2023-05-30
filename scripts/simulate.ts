@@ -3,7 +3,8 @@ import { ethers } from 'hardhat';
 import { mine, time } from '@nomicfoundation/hardhat-network-helpers';
 import config from '../frontend/src/contracts/config.json';
 import fs from 'fs';
-async function main() {
+
+async function simulate() {
   const [deployer] = await ethers.getSigners();
   const [
     owner,
@@ -84,9 +85,11 @@ async function main() {
   await time.increase(90000);
 }
 
-main()
+simulate()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
     process.exit(1);
   });
+
+export { simulate };

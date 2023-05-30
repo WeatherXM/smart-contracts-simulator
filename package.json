@@ -6,6 +6,10 @@
   "license": "ISC",
   "scripts": {
     "setup": "npm install && git submodule update --remote",
+    "start:local": "./node_modules/.bin/hardhat --config hardhat.config.ts node",
+    "compile:local": "./node_modules/.bin/hardhat --config hardhat.config.ts compile",
+    "deploy:local": "./node_modules/.bin/hardhat run --config hardhat.config.ts --network localhost ./scripts/deploy.ts",
+    "simulate:local": "./node_modules/.bin/hardhat run --config hardhat.config.ts --network localhost ./scripts/simulate.ts",
     "node":"hardhat node",
     "compile": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts --network localhost --no-compile",

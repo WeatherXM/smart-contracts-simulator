@@ -1,0 +1,18 @@
+version: '3.3'
+services:
+  hardhat-node:
+    build: 
+      context: .
+      target: hardhat
+      dockerfile: ./Dockerfile
+    container_name: hardhat-node
+    network_mode: "host"
+  frontend-node:
+    build:
+      context: .
+      target: frontend
+      dockerfile: ./Dockerfile
+    container_name: frontend-node
+    depends_on:
+      - "hardhat-node"
+    network_mode: "host"
