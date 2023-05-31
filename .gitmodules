@@ -1,4 +1,0 @@
-[submodule "smart-contracts"]
-	path = smart-contracts
-	url = git@github.com:WeatherXM/smart-contracts.git
-	branch = develop

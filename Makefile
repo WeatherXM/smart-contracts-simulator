@@ -6,15 +6,23 @@ help: # `make help` generates a help message for each target that has a comment 
 
 install: ## Install source dependencies
 	npm run setup
+	git clone --branch=develop git@github.com:WeatherXM/smart-contracts.git
 
 node: ## Spin up a node for the local blockchain
 	npm run node
 
-compile: ## Compile smart contracts
+simulation:
 	npm run compile
-
-deploy: ## Deploy smart contracts on local blockchain
 	npm run deploy
-
-simulate: ## Deploy initial conditions (root hash, etc) for simulation
 	npm run simulate
+
+dapp:
+	cd frontend && npm install && npm run start
+
+clean:
+	rm -rf ./node_modules frontend/node_modules smart-contracts scripts/cache scripts/artifacts types 
+
+clean-docker:
+	-docker container rm hardhat-node frontend-node
+	-docker rmi $$(docker images 'smart-contracts-simulator_frontend-node' -a -q)
+	-docker rmi $$(docker images 'smart-contracts-simulator_hardhat-node' -a -q)

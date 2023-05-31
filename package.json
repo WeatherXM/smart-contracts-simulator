@@ -5,7 +5,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "setup": "npm install && git submodule update --remote",
+    "setup": "npm install",
     "start:local": "./node_modules/.bin/hardhat --config hardhat.config.ts node",
     "compile:local": "./node_modules/.bin/hardhat --config hardhat.config.ts compile",
     "deploy:local": "./node_modules/.bin/hardhat run --config hardhat.config.ts --network localhost ./scripts/deploy.ts",
@@ -28,11 +28,10 @@
     "@typechain/hardhat": "^6.1.5",
     "dotenv": "^16.0.3",
     "hardhat": "^2.14.0",
-    "react-native": "^0.71.7",
-    "weatherXM": "eval $(grep '^GITHUB_PERSONAL_ACCESS_TOKEN' .env) && git clone git+https://$GITHUB_PERSONAL_ACCESS_TOKEN:x-oauth-basic@github.com:WeatherXM/smart-contracts.git#develop"
+    "react-native": "^0.71.7"
   },
   "engines": {
-    "node": "16.x.x",
+    "node": "18.x.x",
     "npm": "8.x.x"
   }
 }

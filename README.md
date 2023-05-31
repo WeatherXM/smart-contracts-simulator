@@ -24,10 +24,10 @@ git clone https://github.com/WeatherXM/smart-contracts-simulator
 cd smart-contracts-simulator
 ```
 
-3. Install the dependencies and add the smart-contracts submodule:
+3. Install the dependencies and add the smart-contracts:
 
 ```
-npm run setup
+make install
 ```
 
 4. Build and run the project using Docker Compose:
