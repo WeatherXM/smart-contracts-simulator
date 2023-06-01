@@ -2,6 +2,12 @@
 
 Welcome to the Smart Contract Simulator repository!
 
+This project simulates the following two process:
+- claiming flow that enables rewards to be withdrawn from smart contract and
+- purchasing services' flow that enables our customers to get weather services.
+
+The simulator utilizes WeatherXM's smart contracts.
+
 ## Prerequisites
 Before cloning and using this repository, please make sure you have the following prerequisites installed on your local machine:
 
@@ -38,7 +44,7 @@ docker-compose up
 
 This command will start the necessary services and set up the development environment for the project. You should see the logs from the running services in the terminal.
 
-5.  Setup the Metamask using the following [instructions](./docs/metamask.md)
+5.  Setup the Metamask to work with the simulator using the following [instructions](./docs/metamask.md)
 
 6. Access the application:
 
