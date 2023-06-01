@@ -10,28 +10,23 @@
     "compile:local": "./node_modules/.bin/hardhat --config hardhat.config.ts compile",
     "deploy:local": "./node_modules/.bin/hardhat run --config hardhat.config.ts --network localhost ./scripts/deploy.ts",
     "simulate:local": "./node_modules/.bin/hardhat run --config hardhat.config.ts --network localhost ./scripts/simulate.ts",
-    "node":"hardhat node",
+    "node": "hardhat node",
     "compile": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts --network localhost --no-compile",
     "simulate": "hardhat run scripts/simulate.ts --network localhost --no-compile"
-
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.6.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@openzeppelin/contracts": "^4.8.3",
-    "@openzeppelin/contracts-upgradeable": "^4.8.3",
+    "@openzeppelin/contracts": "4.8.2",
+    "@openzeppelin/contracts-upgradeable": "4.8.2",
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@openzeppelin/merkle-tree": "^1.0.4",
     "@typechain/hardhat": "^6.1.5",
     "dotenv": "^16.0.3",
-    "hardhat": "^2.14.0",
-    "react-native": "^0.71.7"
-  },
-  "engines": {
-    "node": "18.x.x",
-    "npm": "8.x.x"
+    "ethers": "^5.7.2",
+    "hardhat": "^2.14.0"
   }
 }

@@ -10,8 +10,6 @@ CLEAR = "$$(tput sgr0)"
 
 trace = @echo "$(BOLD)$(GREEN) > $(1)$(CLEAR)"
 separator = @printf '%s\n' -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
-parse_error = sed -e "s/Error/$(BOLD)$(RED)Error$(CLEAR)/g"
-# wrap = $(call trace, "$(1)"); $(2) 2>&1 | $(parse_error); $(separator)
 
 .PHONY: all install node simulation dapp clean clean-docker
 
@@ -22,7 +20,7 @@ help: # `make help` generates a help message for each target that has a comment 
 	$(separator)
 
 .PHONY: install
-install:
+install: clean
 	$(call trace, Install Dependencies For Simulator)
 	npm run setup
 	$(call trace, Clone smart-contracts Repo)
@@ -38,11 +36,11 @@ node:
 .PHONY: simulation
 simulation:
 	$(call trace, Compile Smart Contracts)
-	npm run compile 2>&1 | $(parse_error)
+	npm run compile 
 	$(call trace, Deploy Smart Contracts on local Hardhat node)
-	npm run deploy 2>&1 | $(parse_error)
+	npm run deploy 
 	$(call trace, Deploy Simulation Script)
-	npm run simulate 2>&1 | $(parse_error)
+	npm run simulate
 	$(separator)
 
 .PHONY: dapp
@@ -60,9 +58,9 @@ clean:
 .PHONY: clean-docker
 clean-docker:
 	$(call trace, Remove Docker Containers)
-	@-docker container rm hardhat-node frontend-node 2>&1 | $(parse_error)
+	@-docker container rm hardhat-node frontend-node 
 	$(call trace, Remove Docker Image For Frontend)
-	@-docker rmi $$(docker images 'smart-contracts-simulator_frontend-node' -a -q) 2>&1 | $(parse_error)
+	@-docker rmi $$(docker images 'smart-contracts-simulator_frontend-node' -a -q)
 	$(call trace, Remove Docker Image For Hardhat Node)
-	@-docker rmi $$(docker images 'smart-contracts-simulator_hardhat-node' -a -q) 2>&1 | $(parse_error)
+	@-docker rmi $$(docker images 'smart-contracts-simulator_hardhat-node' -a -q)
 	$(separator)
