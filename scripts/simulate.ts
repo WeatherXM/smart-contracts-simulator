@@ -5,7 +5,6 @@ import config from '../frontend/src/contracts/config.json';
 import fs from 'fs';
 
 async function simulate() {
-  const [deployer] = await ethers.getSigners();
   const [
     owner,
     distributor,
@@ -81,7 +80,9 @@ async function simulate() {
     'utf-8'
   );
   console.log("Generated proofs in: "+__dirname + '/../frontend/src/contracts/proofs.json')
-
+  // the following increase the timestamp in local hardhat node by 1 day 
+  // so its possible to resubmit the root hash with increased cumulative rewards per account
+  // to evaluate the updated state in smart contracts through the frontend
   await time.increase(90000);
 }
 

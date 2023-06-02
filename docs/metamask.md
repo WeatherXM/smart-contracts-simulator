@@ -42,7 +42,36 @@ After adding the custom network, it will appear in the network dropdown menu. Se
  ![Custom Network Switch](img/switch-networks.png)
 
 ### Step 6: Create/Import an Account
-Once the docker-compose has already spun up the containers, then you should pick the private key from one of the first four accounts and import it into the Metamask.
+Once the docker-compose has already spun up the containers, then you should pick the private key from one of the accounts which are preloaded with test ETH in order to 
+execute transactions (these accounts are available from the Hardhat node) and import it into the Metamask. More about the rewards assigned to each account can be found in [simulate script](https://github.com/WeatherXM/smart-contracts-simulator/blob/main/scripts/simulate.ts).
+
+```
+[
+    {
+        'public':'0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+        'private':'0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a'
+        'rewards':100.0
+    },
+    {
+        'public':'0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+        'private':'0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6'
+        'rewards':60.0
+    },
+    {
+        'public':'0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
+        'private':'0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a'
+        'rewards':48.3
+    },
+    {
+        'public':'0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
+        'private':'0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba'
+        'rewards':30.0
+    },
+    ...
+]
+
+```
+
 The following images describe the steps that you should follow to  import the account.
 
  ![Hardhat Accounts](img/hardhat-accounts.png)
