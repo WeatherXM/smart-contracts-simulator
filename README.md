@@ -39,10 +39,16 @@ make install
 4. Build and run the project using Docker Compose:
 
 ```
-docker-compose up
+make deploy
 ```
 
-This command will start the necessary services and set up the development environment for the project. You should see the logs from the running services in the terminal.
+or if you want to rebuild the docker images: 
+
+```
+make deploy-clean
+```
+
+Both commands will start the necessary services and set up the development environment for the project. You should see the logs from the running services in the terminal.
 
 5.  Setup the Metamask to work with the simulator using the following [instructions](./docs/metamask.md)
 
