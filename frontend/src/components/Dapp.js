@@ -1,3 +1,4 @@
+/* eslint-disable */ 
 import React from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 

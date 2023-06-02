@@ -1,5 +1,5 @@
+/* eslint-disable */ 
 import React from "react";
-import Dropdown from 'react-dropdown';
 
 export function ChooseService({ requestService, tokenSymbol }) {
 	const options = [
