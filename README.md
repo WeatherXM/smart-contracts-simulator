@@ -50,6 +50,13 @@ This command will start the necessary services and set up the development enviro
 
 Once the project is running, you can access the application by opening a web browser and navigating to  `http://localhost:3000`.
 
+7. Once the simulation is complete, you may cleanup the environment:
+
+```
+make clean
+make clean-docker
+```
+
 **Additional Configuration**
 
 - In case that the port `:3000` on your host is already allocated to another service, you can customize the configuration by modifying the docker-compose.yml file in order to expose the port `:3000` from the container named `frontend-node` to another port.
@@ -62,3 +69,6 @@ Feel free to dive in! [Open](https://github.com/WeatherXM/smart-contracts-simula
 ## Acknowledgements
 
 - [Hardhat](https://github.com/NomicFoundation/hardhat)
+- [Etherjs](https://github.com/ethers-io/ethers.js/)
+- [Metamask](https://metamask.io)
+- [Docker Compose](https://docs.docker.com/compose/)
