@@ -11,7 +11,7 @@ CLEAR = "$$(tput sgr0)"
 trace = @echo "$(BOLD)$(GREEN) > $(1)$(CLEAR)"
 separator = @printf '%s\n' -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
 
-.PHONY: all install node simulation dapp clean clean-docker
+.PHONY: all install node deploy deploy-clean simulation dapp clean clean-docker
 
 .PHONY: help
 help: # `make help` generates a help message for each target that has a comment starting with ##
@@ -22,7 +22,7 @@ help: # `make help` generates a help message for each target that has a comment 
 .PHONY: install
 install: clean
 	$(call trace, Install Dependencies For Simulator)
-	npm run setup
+	npm config set loglevel error && npm run setup
 	$(call trace, Clone smart-contracts Repo)
 	git clone --branch=develop git@github.com:WeatherXM/smart-contracts.git
 	$(separator)
@@ -32,6 +32,16 @@ node:
 	$(call trace, Spin up Hardhat Node)
 	npm run node
 	$(separator)
+
+.PHONY: deploy
+deploy:
+	$(call trace, Spin Up Docker Containers)
+	docker-compose up
+
+.PHONY: deploy-clean
+deploy-clean:
+	$(call trace, Spin Up Docker Containers [Rebuild Images])
+	docker-compose up --build
 
 .PHONY: simulation
 simulation:
@@ -46,7 +56,7 @@ simulation:
 .PHONY: dapp
 dapp:
 	$(call trace, Install Frontend Dependencies & Start Frontend)
-	cd frontend && npm install && npm run start
+	cd frontend && npm config set loglevel error && npm install && npm run start
 	$(separator)
 
 .PHONY: clean
