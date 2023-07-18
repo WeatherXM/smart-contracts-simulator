@@ -13,8 +13,6 @@ export function ChooseService({ requestService, services = [] }) {
 			<h3>1. Choose Service</h3>
 			<form
 				onSubmit={(event) => {
-					// This function just calls the transferTokens callback with the
-					// form's data.
 					event.preventDefault();
 
 					const formData = new FormData(event.target);
@@ -45,7 +43,7 @@ export function ChooseService({ requestService, services = [] }) {
 					<input className="form-control" type="text" name="amount" required />
 				</div>
 				<div className="form-group">
-					<input className="btn btn-primary" type="submit" value="Request" />
+					<input className="btn btn-primary mr-4" type="submit" value="Request" />
 				</div>
 			</form>
 		</div>

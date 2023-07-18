@@ -51,7 +51,7 @@ export class Dapp extends React.Component {
 		this.state = { value: "" };
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
-		this.handlePurchaseWithWxm = this.handlePurchaseWithWxm.bind(this);
+		this.handleConfirmPurchase = this.handleConfirmPurchase.bind(this);
 		this.state = { hasError: false }
 		// We store multiple things in Dapp's state.
 		// You don't need to follow this pattern, but it's an useful example.
@@ -280,8 +280,9 @@ export class Dapp extends React.Component {
 									WXM COST FOR {this.state.purchaseOrder.amount} DAYS OF {this.state.purchaseOrder.service}: <b>{this.state.purchaseOrder.usdAmount}$ / {this.state.purchaseOrder.wxmPrice} = {this.state.purchaseOrder.wxmAmount} WXM</b>
 									
 								</p>
-								<form onSubmit={this.handlePurchaseWithWxm}>
-									<input className="btn btn-primary" type="submit" value="Purchase" />
+								<form onSubmit={this.handleConfirmPurchase}>
+									<input className="btn btn-primary mr-6" type="submit" value={`Purchase with WXM (${this.state.purchaseOrder.wxmAmount} WXM)`} />
+									<input className="btn btn-primary" type="submit" value={`Purchase with USDT (${this.state.purchaseOrder.usdAmount} USDT)`} />
 								</form>
 
 							</div>
@@ -408,7 +409,6 @@ export class Dapp extends React.Component {
 	async _fetchAllServices() {
 		const serviceCount = Number((await this._servicePool.getServiceCount()).toString());
 
-		console.log('file: Dapp.js:407 -> Dapp -> serviceCount:', serviceCount)
 		const allServices = [];
 
 		for(let i = 0 ; i < serviceCount ; i++) {
@@ -506,6 +506,11 @@ export class Dapp extends React.Component {
 			config.tokenArtifact.abi,
 			this._provider.getSigner(0)
 		);
+		this._usdt = new ethers.Contract(
+			config.usdtAddress,
+			config.tokenArtifact.abi,
+			this._provider.getSigner(0)
+		);
 		this._rewardPool = new ethers.Contract(
 			config.rewardPoolAddress,
 			config.rewardPoolArtifact.abi,
@@ -556,7 +561,6 @@ export class Dapp extends React.Component {
 
 	async _updateBalance() {
 		const balanceWEI = await this._token.balanceOf(this.state.selectedAddress);
-		// console.log(balanceWEI);
 		const balance = ethers.utils.formatUnits(balanceWEI.toString(), "ether");
 		this.setState({ balance });
 	}
@@ -577,7 +581,6 @@ export class Dapp extends React.Component {
 		this._rewardPool.on(
 			"Claimed",
 			(account, amount, event) => {
-				// console.log(event)
 				let ClaimedEvent = {
 					account: account,
 					amount: ethers.utils.formatUnits(amount.toString(), "ether")
@@ -631,8 +634,8 @@ export class Dapp extends React.Component {
 		event.preventDefault();
 	}
 
-	handlePurchaseWithWxm(event) {
-		this.purchaseWithWxm();
+	handleConfirmPurchase(event) {
+		this.confirmPurchase(event);
 		event.preventDefault();
 	}
 	
@@ -658,8 +661,6 @@ export class Dapp extends React.Component {
 		
 	}
 	async _requestService(service, amount, vpu) {
-
-		console.log('file: Dapp.js:647 -> Dapp -> service, amount, vpu:', service, amount, vpu)
 		this.state.hasError = false;
 		this.state.purchaseOrder.amount = Number(amount);
 		this.state.purchaseOrder.service = service;
@@ -670,11 +671,9 @@ export class Dapp extends React.Component {
 		this.state.purchaseOrder.wxmAmount = Number(this.state.purchaseOrder.amount / this.state.purchaseOrder.wxmPrice).toFixed(1);
 		this.state.purchaseOrder.serviceID = service
 		this.state.purchaseOrderApproval = true
-
-		console.log('here')
 	}
 
-	async purchaseWithWxm() {
+	async confirmPurchase(event) {
 		this.state.hasError = false;
 		try{
 			this.state.loading = true;
@@ -683,17 +682,32 @@ export class Dapp extends React.Component {
 			// 	ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount))
 			// );
 			//talk to the billing system
-			console.log('file: Dapp.js:676 -> Dapp -> this._servicePool:', this._servicePool)
-			let transaction = await this._servicePool['purchaseService(uint256,uint256,string)'](
-				ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount)),
-				this.state.purchaseOrder.amount,
-				this.state.purchaseOrder.serviceID
-			);
+
+			let transaction
+
+			if(event.nativeEvent.submitter.value.startsWith('Purchase with WXM')) {
+				await (await this._token.approve(
+					config.servicePoolAddress,
+					ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount))
+				)).wait()
+				transaction = await this._servicePool['purchaseService(uint256,uint256,string)'](
+					ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount)),
+					this.state.purchaseOrder.amount,
+					this.state.purchaseOrder.serviceID
+				);
+			} else if(event.nativeEvent.submitter.value.startsWith('Purchase with USDT')) {
+				await (await this._usdt.approve(
+					config.servicePoolAddress,
+					ethers.utils.parseEther(String(this.state.purchaseOrder.amount))
+				)).wait();
+				transaction = await this._servicePool['purchaseService(uint256,string)'](
+					this.state.purchaseOrder.amount,
+					this.state.purchaseOrder.serviceID
+				);
+			}
 
 			this.state.burnForServiceHash = transaction.hash
 		}catch(err){
-
-			console.log('file: Dapp.js:678 -> Dapp -> err:', err)
 			this.state.loading = false;
 			this.state.hasError = true;
 			this.state.error = err;
@@ -709,9 +723,7 @@ export class Dapp extends React.Component {
 		let fragment = ethers.utils.EventFragment.from(signature)
 		let emptyIface = new ethers.utils.Interface([])
 		let topicHash = emptyIface.getEventTopic(fragment)
-		console.log(topicHash)
 		const topic = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(signature))
-		console.log(ethers.utils.keccak256(ethers.utils.toUtf8Bytes('BurnedForService(address,uint256,int,uint,string)')))
 		receipt.logs.map(log => {
 			if(log.topics[0] === topicHash){				
 				const result = ethers.utils.defaultAbiCoder.decode(['address', 'uint256', 'int', 'uint', 'string'],log.data)
