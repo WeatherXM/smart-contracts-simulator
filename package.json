@@ -9,6 +9,7 @@
     "start:local": "./node_modules/.bin/hardhat --config hardhat.config.ts node",
     "compile:local": "./node_modules/.bin/hardhat --config hardhat.config.ts compile",
     "deploy:local": "./node_modules/.bin/hardhat run --config hardhat.config.ts --network localhost ./scripts/deploy.ts",
+    "deploy:hardhat": "./node_modules/.bin/hardhat run --config hardhat.config.ts ./scripts/deploy.ts",
     "simulate:local": "./node_modules/.bin/hardhat run --config hardhat.config.ts --network localhost ./scripts/simulate.ts",
     "node": "hardhat node",
     "compile": "hardhat compile",
@@ -28,5 +29,10 @@
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "hardhat": "^2.14.0"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-solhint": "^3.0.1",
+    "hardhat-preprocessor": "^0.1.5",
+    "solidity-docgen": "^0.6.0-beta.35"
   }
 }

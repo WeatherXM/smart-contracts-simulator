@@ -1,9 +1,19 @@
+import 'hardhat-preprocessor';
 import '@openzeppelin/hardhat-upgrades';
 import '@typechain/hardhat';
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomiclabs/hardhat-ethers';
 import '@nomicfoundation/hardhat-network-helpers';
+import * as fs from 'fs';
+
+function getRemappings() {
+  return fs
+    .readFileSync('remappings.txt', 'utf8')
+    .split('\n')
+    .filter(Boolean) // remove empty lines
+    .map((line) => line.trim().split('='));
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const compilerConfig = (version: string) => ({
@@ -31,7 +41,22 @@ const hardhatConfig: HardhatUserConfig = {
     }
   },
   solidity: {
-    compilers: [{ ...compilerConfig('0.8.18') }]
+    compilers: [{ ...compilerConfig('0.8.20') }]
+  },
+  preprocess: {
+    eachLine: () => ({
+      transform: (line: string) => {
+        if (line.match(/^\s*import /i)) {
+          for (const [from, to] of getRemappings()) {
+            if (line.includes(from)) {
+              line = line.replace(from, to);
+              break;
+            }
+          }
+        }
+        return line;
+      }
+    })
   },
   paths: {
     sources: './smart-contracts/src',
