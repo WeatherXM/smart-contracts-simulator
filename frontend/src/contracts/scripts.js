@@ -6,25 +6,22 @@ console.log('config:', config)
 export async function getAllocatedRewards(cycle, address, provider){
     try {
 
-        let proofValues = []
+        let proofValues = proofs[address].proof
         const rewardPool = new ethers.Contract(
             config.rewardPoolAddress,
             config.rewardPoolArtifact.abi,
             provider.getSigner(0)
         );
         proofValues = proofs[address].proof.map(val => {return val})
-        console.log(proofs[address].cumulativeAmount)
-        // const allocatedRewards = await rewardPool.getRemainingAllocatedRewards(
-        //     address, 
-        //     ethers.utils.parseEther(proofs[address].cumulativeAmount), 
-        //     cycle, 
-        //     proofValues
-        // );
-        const allocatedRewards = 0;
+        const allocatedRewards = await rewardPool.getRemainingAllocatedRewards(
+            address, 
+            ethers.utils.parseEther(proofs[address].cumulativeAmount), 
+            Number(cycle.toString()) - 1, 
+            proofValues
+        );
         return ethers.utils.formatUnits(allocatedRewards.toString(), 'ether') ;
     }
     catch(err) {
         console.log('err:', err)
-        
     }
 }
