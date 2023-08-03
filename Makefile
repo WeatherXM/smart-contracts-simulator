@@ -45,6 +45,8 @@ deploy-clean:
 
 .PHONY: simulation
 simulation:
+	$(call trace, Create remappings for smart contract imports)
+	npm run createRemappings
 	$(call trace, Compile Smart Contracts)
 	npm run compile 
 	$(call trace, Deploy Smart Contracts on local Hardhat node)
