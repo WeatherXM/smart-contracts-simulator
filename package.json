@@ -14,7 +14,8 @@
     "node": "hardhat node",
     "compile": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts --network localhost --no-compile",
-    "simulate": "hardhat run scripts/simulate.ts --network localhost --no-compile"
+    "simulate": "hardhat run scripts/simulate.ts --network localhost --no-compile",
+    "createRemappings": "ts-node ./scripts/createRemappings.ts"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.6.1",
