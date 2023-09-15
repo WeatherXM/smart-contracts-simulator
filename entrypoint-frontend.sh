@@ -3,6 +3,8 @@
 cd /usr/src/app;
 #Install dependencies
 npm run setup
+# Create remappings for smart contract imports
+npm run createRemappings
 # Compile smart-contracts
 npm run compile:local;
 # Deploy smart-contracts

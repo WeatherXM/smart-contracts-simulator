@@ -1,7 +1,8 @@
 /* eslint-disable */ 
 import React from "react";
+import { ethers } from "ethers";
 
-export function ChooseService({ requestService, tokenSymbol }) {
+export function ChooseService({ requestService, services = [] }) {
 	const options = [
 		'Weather Forecast', 'Raw Data'
 	];
@@ -12,16 +13,16 @@ export function ChooseService({ requestService, tokenSymbol }) {
 			<h3>1. Choose Service</h3>
 			<form
 				onSubmit={(event) => {
-					// This function just calls the transferTokens callback with the
-					// form's data.
 					event.preventDefault();
 
-					
 					const formData = new FormData(event.target);
 					const service = formData.get("service");
-					const period = formData.get("period");
-					if (service && period) {
-						requestService(service, period);
+					const amount = formData.get("amount");
+					const selectedService = services.find(ser => ser.serviceId === service)
+					const vpu = selectedService[3].toString()
+
+					if (service && amount) {
+						requestService(service, amount, vpu);
 					}
 				}}
 			>
@@ -29,22 +30,20 @@ export function ChooseService({ requestService, tokenSymbol }) {
 					<label>Choose Service:</label>
 					
 					<select name='service' className="btn btn-secondary dropdown-toggle">
-						<option className="dropdown-item" value="Weather Forecast">Weather Forecast (0.5$/day)</option>
-						<option className="dropdown-item" value="Raw Data">Raw Data (0.3$/day)</option>
-						<option value="Daily Weather History" className="dropdown-item">Daily Weather History (0.35$/day)</option>
-						<option value="Hourly Weather History" className="dropdown-item">Hourly Weather History (0.32$/day)</option>
-						<option value="Analytics" className="dropdown-item">Analytics (0.85$/day)</option>
+						{services.map(service => (
+							<option className="dropdown-item" value={service.serviceId}>{service[1]} ({ethers.utils.formatEther(service[3].toString()).toString()}$)</option>
+						))}
 					</select>
 
 					{/* <input className="form-control" type="text" name="service" required >
 					</input> */}
 				</div>
 				<div className="form-group">
-					<label>Period (in days)</label>
-					<input className="form-control" type="text" name="period" required />
+					<label>Amount</label>
+					<input className="form-control" type="text" name="amount" required />
 				</div>
 				<div className="form-group">
-					<input className="btn btn-primary" type="submit" value="Request" />
+					<input className="btn btn-primary mr-4" type="submit" value="Request" />
 				</div>
 			</form>
 		</div>

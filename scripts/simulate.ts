@@ -46,26 +46,22 @@ async function simulate() {
       proof: proof
     };
   }
-  const Token = await ethers.getContractFactory('WeatherXM');
-  const token = await Token.attach(config.tokenAddress);
 
   const RewardPool = await ethers.getContractFactory('RewardPool');
   const rewardPool = await RewardPool.attach(config.rewardPoolAddress);
   await rewardPool
     .connect(owner)
     .grantRole(
-      '0xfbd454f36a7e1a388bd6fc3ab10d434aa4578f811acbbcf33afb1c697486313c',
-      await distributor.getAddress()
+      await rewardPool.DISTRIBUTOR_ROLE(),
+      distributor.address
     );
   mine(2);
-  await token.connect(owner).setMintTarget(config.rewardPoolAddress);
-  await token.connect(distributor).mint();
   const dailyCumulativeRewards = ethers.utils.parseEther('1000');
   await rewardPool
     .connect(distributor)
     .submitMerkleRoot(tree.root, dailyCumulativeRewards);
   
-  const txnGetRoot = await rewardPool.connect(distributor).roots(1);
+  const txnGetRoot = await rewardPool.connect(distributor).roots(0);
   console.log('Submitted Root Hash: ' + txnGetRoot);
   console.log('Daily Total Cumulative Rewards: ' + dailyCumulativeRewards);
   fs.writeFileSync(
@@ -83,7 +79,7 @@ async function simulate() {
   // the following increase the timestamp in local hardhat node by 1 day 
   // so its possible to resubmit the root hash with increased cumulative rewards per account
   // to evaluate the updated state in smart contracts through the frontend
-  await time.increase(90000);
+  // await time.increase(90000);
 }
 
 simulate()

@@ -20,6 +20,7 @@ import { ChooseService } from "./ChooseService";
 import { ValidateProofOfBurn } from "./ValidateProofOfBurn.js"
 import { TransactionErrorMessage } from "./TransactionErrorMessage";
 import { WaitingForTransactionMessage } from "./WaitingForTransactionMessage";
+import { PurchasedServices } from "./PurchasedServices";
 
 // This is the Hardhat Network id that we set in our hardhat.config.js.
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
@@ -50,7 +51,11 @@ export class Dapp extends React.Component {
 		this.state = { value: "" };
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
-		this.handleSubmitApproveBurn = this.handleSubmitApproveBurn.bind(this);
+		this.handleClaimSubmit = this.handleClaimSubmit.bind(this);
+		this.handleConfirmPurchase = this.handleConfirmPurchase.bind(this);
+		this.getClaimUnlockTime = this.getClaimUnlockTime.bind(this);
+		this.canClaimNow = this.canClaimNow.bind(this);
+		this.getTimeToClaim = this.getTimeToClaim.bind(this);
 		this.state = { hasError: false }
 		// We store multiple things in Dapp's state.
 		// You don't need to follow this pattern, but it's an useful example.
@@ -78,7 +83,11 @@ export class Dapp extends React.Component {
 			purchaseOrderApproval: false,
 			claimedAmount: undefined,
 			claimedAddress: undefined,
-			claimedHash: undefined
+			claimedHash: undefined,
+			purchasedServices: [],
+			requestedClaimAmount: undefined,
+			requestClaimTime: undefined,
+			claimWaitPeriod: undefined
 		};
 
 		this.state = this.initialState;
@@ -133,7 +142,7 @@ export class Dapp extends React.Component {
 						</p>
 						<p>
 							<b>
-								{this.state.allocatedRewards.toString()}{" "}
+								{this.state.allocatedRewards ? this.state.allocatedRewards.toString() : '...'}{" "}
 								{this.state.tokenData.symbol} ALLOCATED REWARDS
 							</b>
 						</p>
@@ -158,10 +167,34 @@ export class Dapp extends React.Component {
 								/>
 							</label>
 							<br></br>
-							<input className="btn btn-primary" type="submit" value="Claim" />
+							<input className="btn btn-primary" type="submit" value="Request Claim" />
 						</form>
 					</div>
 				</div>
+				{this.hasAvailableToClaim() ? (
+					<div className="row">
+						<div className="col-12">
+							<form onSubmit={this.handleClaimSubmit}>
+									<br></br>
+									<br></br>
+									<p>
+										{this.canClaimNow() ? (
+											<b>
+												{this.state.requestedClaimAmount.toString()}{" "}
+												WXM pending to claim
+											</b>
+										) : (
+											<b>
+												{this.state.requestedClaimAmount.toString()}{" "}
+												WXM claimable in {this.getTimeToClaim()} seconds
+											</b>
+										)}
+									</p>
+									<input className="btn btn-primary" type="submit" value="Claim" />
+							</form>
+						</div>
+					</div>
+				) : null}
 				<div className="row">
 					<div className="col-12">
 						{/* 						
@@ -233,10 +266,11 @@ export class Dapp extends React.Component {
 						{this.state.balance > 0 && (
 							<div>
 								<ChooseService
-									requestService={(service, period) =>
-										this._requestService(service, period)
+									requestService={(service, period, vpu) =>
+										this._requestService(service, period, vpu)
 									}
 									tokenSymbol={this.state.tokenData.symbol}
+									services={this._services}
 								/>
 							</div>
 						)}
@@ -254,7 +288,7 @@ export class Dapp extends React.Component {
               The component doesn't have logic, it just calls the transferTokens
               callback.
             */}
-						{this.state.purchaseOrder.period > 0 && (
+						{this.state.purchaseOrder.amount > 0 && (
 							
 							<div>
 								<hr />
@@ -263,22 +297,23 @@ export class Dapp extends React.Component {
 									PURCHASE ORDER IDENTIFIER: <b>{this.state.purchaseOrder.serviceID}</b>
 								</p>
 								<p>
-									PERIOD: <b>{this.state.purchaseOrder.period} DAYS</b>
+									AMOUNT: <b>{this.state.purchaseOrder.amount}</b>
 								</p>
 								<p>
 									
-									USD COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: <b>{this.state.purchaseOrder.usdAmount} $</b>
+									USD COST FOR {this.state.purchaseOrder.amount} DAYS OF {this.state.purchaseOrder.service}: <b>{this.state.purchaseOrder.usdAmount} $</b>
 								</p>
 								<p>
 									WXM/USD Price from Oracle: <b>{this.state.purchaseOrder.wxmPrice}</b>
 								</p>
 								<p>
 									
-									WXM COST FOR {this.state.purchaseOrder.period} DAYS OF {this.state.purchaseOrder.service}: <b>{this.state.purchaseOrder.usdAmount}$ / {this.state.purchaseOrder.wxmPrice} = {this.state.purchaseOrder.wxmAmount} WXM</b>
+									WXM COST FOR {this.state.purchaseOrder.amount} DAYS OF {this.state.purchaseOrder.service}: <b>{this.state.purchaseOrder.usdAmount}$ / {this.state.purchaseOrder.wxmPrice} = {this.state.purchaseOrder.wxmAmount} WXM</b>
 									
 								</p>
-								<form onSubmit={this.handleSubmitApproveBurn}>
-									<input className="btn btn-primary" type="submit" value="Approve & Burn" />
+								<form onSubmit={this.handleConfirmPurchase}>
+									<input className="btn btn-primary mr-6" type="submit" value={`Purchase with WXM (${this.state.purchaseOrder.wxmAmount} WXM)`} />
+									<input className="btn btn-primary" type="submit" value={`Purchase with USDT (${this.state.purchaseOrder.usdAmount} USDT)`} />
 								</form>
 
 							</div>
@@ -380,6 +415,7 @@ export class Dapp extends React.Component {
 						)}
 					</div>
 					</div>
+					<PurchasedServices services={this.state.purchasedServices}/>
 					<div className="sweet-loading" >
 						<ClipLoader
 						cssOverride={override}
@@ -399,6 +435,34 @@ export class Dapp extends React.Component {
 		// We poll the user's balance, so we have to stop doing that when Dapp
 		// gets unmounted
 		this._stopPollingData();
+	}
+
+	async _fetchAllServices() {
+		const serviceCount = Number((await this._servicePool.getServiceCount()).toString());
+
+		const allServices = [];
+
+		for(let i = 0 ; i < serviceCount ; i++) {
+			const serviceId = await this._servicePool.getServiceAtIndex(i);
+			const service = await this._servicePool.getServiceByID(serviceId);
+			allServices.push({
+				...service,
+				serviceId
+			})
+		}
+		
+		this._services = allServices;
+	}
+
+	async _fetchPurchasedServices(address) {
+		if (!this.state.selectedAddress) {
+			const res = await fetch(`http://localhost:3000/api/v1/service-purchased?buyer=${address ? address : this.state.selectedAddress}`);
+			const purchasedServices = await res.json()
+
+			this.setState({
+				purchasedServices
+			})
+		}
 	}
 
 	async _connectWallet() {
@@ -441,7 +505,7 @@ export class Dapp extends React.Component {
 		});
 	}
 
-	_initialize(userAddress) {
+	async _initialize(userAddress) {
 		// This method initializes the dapp
 
 		// We first store the user's address in the component's state
@@ -454,10 +518,14 @@ export class Dapp extends React.Component {
 
 		// Fetching the token data and the user's balance are specific to this
 		// sample project, but you can reuse the same initialization pattern.
-		this._initializeEthers();
-		this._getTokenData();
-		this._startPollingData();
-		this._updateAllocatedRewards();
+		await this._fetchPurchasedServices(userAddress)
+		await this._initializeEthers();
+		await this._getTokenData();
+		await this._startPollingData();
+		await this._updateAllocatedRewards();
+		await this._fetchAllServices();
+		await this._updateRequestedClaimAmount(userAddress);
+		await this._updateClaimWaitPeriod();
 	}
 
 	async _initializeEthers() {
@@ -471,21 +539,21 @@ export class Dapp extends React.Component {
 			config.tokenArtifact.abi,
 			this._provider.getSigner(0)
 		);
+		this._usdt = new ethers.Contract(
+			config.usdtAddress,
+			config.tokenArtifact.abi,
+			this._provider.getSigner(0)
+		);
 		this._rewardPool = new ethers.Contract(
 			config.rewardPoolAddress,
 			config.rewardPoolArtifact.abi,
 			this._provider.getSigner(0)
 		);
-		this._burnPool = new ethers.Contract(
-			config.burnPoolAddress,
-			config.burnPoolArtifact.abi,
+		this._servicePool = new ethers.Contract(
+			config.servicePoolAddress,
+			config.servicePoolArtifact.abi,
 			this._provider.getSigner(0)
 		);
-		this._oraclePrice = new ethers.Contract(
-			config.priceConsumerAddress,
-			config.priceConsumerArtifact.abi,
-			this._provider.getSigner(0)
-		)
 	}
 
 	// The next two methods are needed to start and stop polling data. While
@@ -502,13 +570,10 @@ export class Dapp extends React.Component {
 			() => this._updateAllocatedRewards(),
 			2000
 		);
-		this._pollDataInterval = setInterval(() => this._updateProofOfBurn(), 3000);
 
 		// We run it once immediately so we don't have to wait for it
-		this._captureClaimedEvent();
 		this._updateBalance();
 		this._updateAllowance();
-		this._updateProofOfBurn();
 		this._updateAllocatedRewards();
 		this._updateClaimedReceipt();
 	}
@@ -529,7 +594,6 @@ export class Dapp extends React.Component {
 
 	async _updateBalance() {
 		const balanceWEI = await this._token.balanceOf(this.state.selectedAddress);
-		console.log(balanceWEI);
 		const balance = ethers.utils.formatUnits(balanceWEI.toString(), "ether");
 		this.setState({ balance });
 	}
@@ -537,7 +601,7 @@ export class Dapp extends React.Component {
 	async _updateAllowance() {
 		const allowanceWEI = await this._token.allowance(
 			this.state.selectedAddress,
-			config.burnPoolAddress
+			config.servicePoolAddress
 		);
 		const allowance = ethers.utils.formatUnits(
 			allowanceWEI.toString(),
@@ -550,7 +614,6 @@ export class Dapp extends React.Component {
 		this._rewardPool.on(
 			"Claimed",
 			(account, amount, event) => {
-				console.log(event)
 				let ClaimedEvent = {
 					account: account,
 					amount: ethers.utils.formatUnits(amount.toString(), "ether")
@@ -561,33 +624,6 @@ export class Dapp extends React.Component {
 				this.setState({
 					claimedAmount,
 					claimedAddress,
-				});
-				
-			}
-		);
-	}
-
-	async _updateProofOfBurn() {
-		this._burnPool.on(
-			"BurnedForService",
-			(from, amount, price, timeStamp, service, event) => {
-				let proofOfBurnEvent = {
-					from: from,
-					amount: ethers.utils.formatUnits(amount.toString(), "ether"),
-					price: ethers.utils.formatUnits(price.toString(), "ether"),
-					timeStamp: timeStamp,
-					service: service,
-				};
-				const proofOfBurnAmount = proofOfBurnEvent.amount;
-				const proofOfBurnPrice = proofOfBurnEvent.price;
-				const proofOfBurnServiceID = proofOfBurnEvent.service;
-
-				console.log(JSON.stringify(proofOfBurnEvent, null, 5));
-				this.state.loading = false;
-				this.setState({
-					proofOfBurnAmount,
-					proofOfBurnServiceID,
-					proofOfBurnPrice,
 				});
 				
 			}
@@ -605,9 +641,8 @@ export class Dapp extends React.Component {
 
 	async _updateAllocatedRewards() {
 		try{
-			const latestCycle = await this._token.getCycle();
-			console.log(latestCycle);
-			console.log(ethers.utils.getAddress(this.state.selectedAddress));
+			const latestCycle = await this._rewardPool.cycle();
+
 			const allocatedRewards = await getAllocatedRewards(
 				latestCycle,
 				ethers.utils.getAddress(this.state.selectedAddress),
@@ -621,6 +656,69 @@ export class Dapp extends React.Component {
 		}
 		
 	}
+
+	getClaimUnlockTime() {
+		const requestedClaimTime = Number(this.state.requestClaimTime.toString())
+ 		const claimWindow = this.state.claimWaitPeriod ? Number(this.state.claimWaitPeriod.toString()) : 0
+		const claimableAt = requestedClaimTime + claimWindow;
+
+		return claimableAt
+	}
+
+	canClaimNow() {
+		const claimUnlockTime = this.getClaimUnlockTime()
+		const now = Math.ceil(Date.now() / 1000)
+
+		return claimUnlockTime < now;
+	}
+
+	hasAvailableToClaim() {
+		if(this.state.requestedClaimAmount) {
+			const availableAmount = Number(this.state.requestedClaimAmount.toString())
+
+			return availableAmount > 0
+		}
+
+		return false
+	}
+
+	getTimeToClaim() {
+		const claimUnlockTime = this.getClaimUnlockTime()
+		const now = Math.ceil(Date.now() / 1000)
+
+		return claimUnlockTime - now;
+	}
+
+	async _updateRequestedClaimAmount(userAddress) {
+		try{
+			const requestedClaim = await this._rewardPool.latestRequestedClaims(userAddress)
+
+
+			this.setState({
+				requestedClaimAmount: ethers.utils.formatEther(requestedClaim.amount),
+				requestClaimTime: requestedClaim.time
+			})
+		}catch(err){
+			this.state.loading = false;
+			this.state.hasError = true;
+			this.state.error = err;
+		}
+	}
+
+	async _updateClaimWaitPeriod() {
+		try{
+			const claimWaitPeriod = await this._rewardPool.claimWaitPeriod()
+
+			this.setState({
+				claimWaitPeriod,
+			})
+		}catch(err){
+			this.state.loading = false;
+			this.state.hasError = true;
+			this.state.error = err;
+		}
+	}
+
 	handleChange(event) {
 		this.setState({ value: event.target.value });
 	}
@@ -628,28 +726,43 @@ export class Dapp extends React.Component {
 	handleSubmit(event) {
 		this.state.loading = true;
 		alert("The submitted amount to claim " + this.state.value);
-		this._claim(this.state.value);
+		this._requestClaim(this.state.value);
 		event.preventDefault();
 	}
 
-	handleSubmitApproveBurn(event) {
-		this._burnTokens();
+	handleClaimSubmit(event) {
+		this.state.loading = true;
+		this._claim();
 		event.preventDefault();
 	}
+
+	handleConfirmPurchase(event) {
+		this.confirmPurchase(event);
+		event.preventDefault();
+	}
+
+	async _claim() {
+		try{
+			let transaction = await this._rewardPool.claim();
+			this.state.claimedHash = transaction.hash;
+		}catch(err){
+			this.state.loading = false;
+			this.state.hasError = true;
+			this.state.error = err;
+		}
+	}
 	
-	async _claim(amount) {
-		console.log("Amount to be claimed: " + amount);
-		const latestCycle = await this._token.getCycle();
-		console.log(ethers.utils.getAddress(this.state.selectedAddress));
+	async _requestClaim(amount) {
+		const latestCycle = await this._rewardPool.cycle();
 		this.state.hasError = false;
 		try{
-			let transaction = await this._rewardPool.claim(
+			let transaction = await this._rewardPool.requestClaim(
 				ethers.utils.parseEther(String(amount)),
 				ethers.utils.parseEther(
 					proofs[ethers.utils.getAddress(this.state.selectedAddress)]
 						.cumulativeAmount
 				),
-				latestCycle,
+				Number(latestCycle.toString()) - 1,
 				proofs[ethers.utils.getAddress(this.state.selectedAddress)].proof
 			);
 			this.state.claimedHash = transaction.hash;
@@ -660,47 +773,52 @@ export class Dapp extends React.Component {
 		}
 		
 	}
-	async _requestService(service, period) {
+	async _requestService(service, amount, vpu) {
 		this.state.hasError = false;
-		let dailyAmount;
-		let timestamp;
-		this.state.purchaseOrder.period = period;
+		this.state.purchaseOrder.amount = Number(amount);
 		this.state.purchaseOrder.service = service;
-		//daily amount is the daily cost
-		if (service == "Weather Forecast") {
-			dailyAmount = 0.5;
-		}else if( service == "Raw Data") {
-			dailyAmount = 0.3;
-		} else if(service == 'Daily Weather History'){
-			dailyAmount = 0.35;
-		}else if( service == 'Hourly Weather History') {
-			dailyAmount = 0.32;
-		} else if(service == 'Analytics'){
-			dailyAmount = 0.85;
-		}
-		let oracle = await this._oraclePrice.getLatestPrice()
 		
-		this.state.purchaseOrder.wxmPrice = ethers.utils.formatUnits(oracle[0].toString(), "ether") 
+		this.state.purchaseOrder.wxmPrice = 10;
 		
-		this.state.purchaseOrder.usdAmount = Number(dailyAmount * period).toFixed(1);
-		this.state.purchaseOrder.wxmAmount =Number(this.state.purchaseOrder.usdAmount / this.state.purchaseOrder.wxmPrice).toFixed(1);
-		this.state.purchaseOrder.serviceID = String(service.replace(/\s/g, '')+period+10049)
+		this.state.purchaseOrder.usdAmount = (Number(amount) * Number(ethers.utils.formatEther(vpu).toString())).toFixed(1);
+		this.state.purchaseOrder.wxmAmount = Number(this.state.purchaseOrder.amount / this.state.purchaseOrder.wxmPrice).toFixed(1);
+		this.state.purchaseOrder.serviceID = service
 		this.state.purchaseOrderApproval = true
 	}
 
-	async _burnTokens() {
+	async confirmPurchase(event) {
 		this.state.hasError = false;
 		try{
 			this.state.loading = true;
-			await this._token.approve(
-				config.burnPoolAddress,
-				ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount))
-			);
+			// await this._token.approve(
+			// 	config.servicePoolAddress,
+			// 	ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount))
+			// );
 			//talk to the billing system
-			let transaction = await this._burnPool.burnForService(
-				ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount)),
-				this.state.purchaseOrder.serviceID
-			);
+
+			let transaction
+
+			if(event.nativeEvent.submitter.value.startsWith('Purchase with WXM')) {
+				await (await this._token.approve(
+					config.servicePoolAddress,
+					ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount))
+				)).wait()
+				transaction = await this._servicePool['purchaseService(uint256,uint256,string)'](
+					ethers.utils.parseEther(String(this.state.purchaseOrder.wxmAmount)),
+					this.state.purchaseOrder.amount,
+					this.state.purchaseOrder.serviceID
+				);
+			} else if(event.nativeEvent.submitter.value.startsWith('Purchase with USDT')) {
+				await (await this._usdt.approve(
+					config.servicePoolAddress,
+					ethers.utils.parseEther(String(this.state.purchaseOrder.amount))
+				)).wait();
+				transaction = await this._servicePool['purchaseService(uint256,string)'](
+					this.state.purchaseOrder.amount,
+					this.state.purchaseOrder.serviceID
+				);
+			}
+
 			this.state.burnForServiceHash = transaction.hash
 		}catch(err){
 			this.state.loading = false;
@@ -718,9 +836,7 @@ export class Dapp extends React.Component {
 		let fragment = ethers.utils.EventFragment.from(signature)
 		let emptyIface = new ethers.utils.Interface([])
 		let topicHash = emptyIface.getEventTopic(fragment)
-		console.log(topicHash)
 		const topic = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(signature))
-		console.log(ethers.utils.keccak256(ethers.utils.toUtf8Bytes('BurnedForService(address,uint256,int,uint,string)')))
 		receipt.logs.map(log => {
 			if(log.topics[0] === topicHash){				
 				const result = ethers.utils.defaultAbiCoder.decode(['address', 'uint256', 'int', 'uint', 'string'],log.data)
