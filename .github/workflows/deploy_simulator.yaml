@@ -4,7 +4,7 @@ on:
 
 jobs:
   deploy-simulator:
-    runs-on: wxm_playground_ec2
+    runs-on: wxm_backend_pg
     permissions:
       contents: read
     steps:
