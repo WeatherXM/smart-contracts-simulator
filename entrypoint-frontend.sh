@@ -5,6 +5,8 @@ cd /usr/src/app;
 npm run setup
 # Create remappings for smart contract imports
 npm run createRemappings
+# Create mock env file for smart contracts compilation
+npm run createEnv
 # Compile smart-contracts
 npm run compile:local;
 # Deploy smart-contracts

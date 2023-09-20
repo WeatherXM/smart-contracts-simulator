@@ -15,7 +15,8 @@
     "compile": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts --network localhost --no-compile",
     "simulate": "hardhat run scripts/simulate.ts --network localhost --no-compile",
-    "createRemappings": "ts-node ./scripts/createRemappings.ts"
+    "createRemappings": "ts-node ./scripts/createRemappings.ts",
+    "createEnv": "ts-node ./scripts/createEnv.ts"
   },
   "devDependencies": {
     "@chainlink/contracts": "^0.6.1",
@@ -29,7 +30,7 @@
     "@typechain/hardhat": "^6.1.5",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
-    "hardhat": "^2.14.0"
+    "hardhat": "2.14.0"
   },
   "dependencies": {
     "@nomiclabs/hardhat-solhint": "^3.0.1",
