@@ -16,3 +16,10 @@ services:
     depends_on:
       - "hardhat-node"
     network_mode: "host"
+  frontend-wallet-test-node:
+    build:
+      context: .
+      target: frontend-wallet-test
+      dockerfile: ./Dockerfile
+    container_name: frontend-wallet-test-node
+    network_mode: "host"
