@@ -26,8 +26,8 @@ const main = async (): Promise<void> => {
 
 main()
   .then(() => {
-    console.log('Events api monitor started')
+    console.log('Transactions api monitor started')
   })
   .catch(err => {
-    console.log(`Events api exited due to ${err.message as string}`)
+    console.log(`Transactions api exited due to ${err.message as string}`)
   })

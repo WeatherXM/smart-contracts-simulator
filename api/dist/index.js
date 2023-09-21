@@ -49,8 +49,8 @@ const main = async () => {
 };
 main()
     .then(() => {
-    console.log('Events api monitor started');
+    console.log('Transactions api monitor started');
 })
     .catch(err => {
-    console.log(`Events api exited due to ${err.message}`);
+    console.log(`Transactions api exited due to ${err.message}`);
 });
