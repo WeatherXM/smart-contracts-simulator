@@ -3,7 +3,7 @@
 cd /usr/src/app;
 cd wallet-connect-test;
 # Install frontend deps
-npm i
+npm i -f
 # Startup the frontend
 npm run start
 # Keep node alive
