@@ -4,6 +4,7 @@ import './App.css';
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal, Web3Button } from '@web3modal/react'
 import { configureChains, createConfig, WagmiConfig, Chain } from 'wagmi'
+import { goerli } from 'wagmi/chains'
 
 import Transactions from './transactions'
 
@@ -27,7 +28,7 @@ const wxm = {
   contracts: {},
 }
 
-const chains = [wxm]
+const chains = [goerli]
 const projectId = '09370c1df96484fa5c783b66e0a0283d'
 
 const { publicClient } = configureChains(

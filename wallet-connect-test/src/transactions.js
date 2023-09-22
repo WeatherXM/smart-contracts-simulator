@@ -5,16 +5,16 @@ import contracts from '../src/contracts/config.json'
 const Transactions = () => {
   const { address } = useAccount()
   const balance = useBalance({
-    token: contracts.tokenAddress,
+    token: '0x2fdc224b5c3e8112e1bf003a7b9dc4b01a2cbf7b',
     address: address,
-    chainId: 1337,
+    chainId: 5,
   })
 
   const { error, isLoading, isSuccess, write } = useContractWrite({
-    address: contracts.tokenAddress,
+    address: '0x2fdc224b5c3e8112e1bf003a7b9dc4b01a2cbf7b',
     abi: contracts.tokenArtifact.abi,
     functionName: 'transfer',
-    chainId: 1337,
+    chainId: 5,
   })
 
   console.log('file: transactions.js:20 -> error:', error)
