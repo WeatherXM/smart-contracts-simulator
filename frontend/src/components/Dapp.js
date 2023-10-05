@@ -628,29 +628,6 @@ export class Dapp extends React.Component {
 		
 	}
 
-	canClaimNow() {
-		const claimUnlockTime = this.getClaimUnlockTime()
-		const now = Math.ceil(Date.now() / 1000)
-
-		return claimUnlockTime < now;
-	}
-
-	hasAvailableToClaim() {
-		if(this.state.requestedClaimAmount) {
-			const availableAmount = Number(this.state.requestedClaimAmount.toString())
-
-			return availableAmount > 0
-		}
-
-		return false
-	}
-
-	getTimeToClaim() {
-		const claimUnlockTime = this.getClaimUnlockTime()
-		const now = Math.ceil(Date.now() / 1000)
-
-		return claimUnlockTime - now;
-	}
 
 	handleChange(event) {
 		this.setState({ value: event.target.value });
