@@ -13,9 +13,9 @@ const Transactions = () => {
   })
 
   const { error, isLoading, isSuccess, write } = useContractWrite({
-    address: contracts.rewardPoolAddress,
-    abi: contracts.rewardPoolArtifact.abi,
-    functionName: 'claim',
+    address: contracts.tokenAddress,
+    abi: contracts.tokenArtifact.abi,
+    functionName: 'transfer',
     chainId: 1337,
   })
 
@@ -33,20 +33,18 @@ const Transactions = () => {
         onClick={() =>
           write({
             args: [
+              '0x64251043A35ab5D11f04111B8BdF7C03BE9cF0e7',
               Web3.utils.toWei('1', 'ether'), // amount to claim
-              Web3.utils.toWei(proofs[address].cumulativeAmount, 'ether'), // total allocated
-              '0', // cycle
-              proofs[address].proof
             ],
             value: '0',
           })
         }
         >
-          Claim
+          Send
         </button>
         {isLoading ? (
           <div style={{marginTop: 20}}>
-            Claiming...
+            Sending...
           </div>
         ) : null}
         {isSuccess ? (
