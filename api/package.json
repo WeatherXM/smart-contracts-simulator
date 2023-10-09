@@ -1,0 +1,40 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "dev": "nodemon -e 'ts' --exec 'npm run build -- --incremental && npm run start'",
+    "standard": "ts-standard",
+    "test": "jest",
+    "version": "echo $npm_package_version"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.0.0",
+    "http-status-codes": "^2.3.0",
+    "logform": "^2.5.1",
+    "morgan": "^1.10.0",
+    "web3": "^4.1.2",
+    "winston": "^3.10.0",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/morgan": "^1.9.4",
+    "@types/node": "^20.4.0",
+    "nodemon": "^2.0.22",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.1",
+    "ts-standard": "^12.0.2",
+    "tslib": "^2.6.0",
+    "typescript": "^5.1.3"
+  }
+}

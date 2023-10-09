@@ -455,14 +455,17 @@ export class Dapp extends React.Component {
 	}
 
 	async _fetchPurchasedServices(address) {
-		if (!this.state.selectedAddress) {
-			const res = await fetch(`http://localhost:3000/api/v1/service-purchased?buyer=${address ? address : this.state.selectedAddress}`);
-			const purchasedServices = await res.json()
 
-			this.setState({
-				purchasedServices
-			})
-		}
+		return [];
+
+		// if (!this.state.selectedAddress) {
+		// 	const res = await fetch(`http://localhost:3000/api/v1/service-purchased?buyer=${address ? address : this.state.selectedAddress}`);
+		// 	const purchasedServices = await res.json()
+
+		// 	this.setState({
+		// 		purchasedServices
+		// 	})
+		// }
 	}
 
 	async _connectWallet() {

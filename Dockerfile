@@ -28,3 +28,17 @@ COPY . ./
 COPY $PWD/entrypoint-frontend.sh /usr/local/bin
 
 ENTRYPOINT ["/bin/sh", "/usr/local/bin/entrypoint-frontend.sh"]
+
+FROM node:16-bullseye-slim AS frontend-wallet-test
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git
+
+WORKDIR /usr/src/app
+
+COPY . ./
+
+COPY $PWD/entrypoint-frontend-wallet-test.sh /usr/local/bin
+
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/entrypoint-frontend-wallet-test.sh"]
