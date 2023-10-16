@@ -4,12 +4,12 @@ import './App.css';
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal, Web3Button } from '@web3modal/react'
 import { configureChains, createConfig, WagmiConfig, Chain } from 'wagmi'
-import { goerli } from 'wagmi/chains'
+import { arbitrumGoerli } from 'wagmi/chains'
 
 import Transactions from './transactions'
 
 const wxm = {
-  id: 111111111,
+  id: 1337,
   name: 'WeatherXM',
   network: 'wxm',
   nativeCurrency: {
@@ -18,8 +18,8 @@ const wxm = {
     symbol: 'WXM',
   },
   rpcUrls: {
-    public: { http: ['http://13.42.17.5:8545/'] },
-    default: { http: ['http://13.42.17.5:8545/'] },
+    public: { http: ['https://playground.weatherxm.com'] },
+    default: { http: ['https://playground.weatherxm.com'] },
   },
   blockExplorers: {
     etherscan: { name: 'SnowTrace', url: 'https://snowtrace.io' },
@@ -28,7 +28,7 @@ const wxm = {
   contracts: {},
 }
 
-const chains = [goerli]
+const chains = [arbitrumGoerli]
 const projectId = '09370c1df96484fa5c783b66e0a0283d'
 
 const { publicClient } = configureChains(

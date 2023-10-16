@@ -1,23 +1,23 @@
 import { useAccount, useContractWrite, useBalance } from 'wagmi'
+import Web3 from 'web3'
 
 import contracts from '../src/contracts/config.json'
+import proofs from '../src/contracts/proofs.json'
 
 const Transactions = () => {
   const { address } = useAccount()
   const balance = useBalance({
-    token: '0x2fdc224b5c3e8112e1bf003a7b9dc4b01a2cbf7b',
+    token: contracts.tokenAddress,
     address: address,
-    chainId: 5,
+    chainId: 421613,
   })
 
   const { error, isLoading, isSuccess, write } = useContractWrite({
-    address: '0x2fdc224b5c3e8112e1bf003a7b9dc4b01a2cbf7b',
-    abi: contracts.tokenArtifact.abi,
-    functionName: 'transfer',
-    chainId: 5,
+    address: contracts.rewardPoolAddress,
+    abi: contracts.rewardPoolArtifact.abi,
+    functionName: 'claim',
+    chainId: 421613,
   })
-
-  console.log('file: transactions.js:20 -> error:', error)
 
   return (
     <>
@@ -30,13 +30,17 @@ const Transactions = () => {
         disabled={!write}
         onClick={() =>
           write({
-            args: ['0x64251043A35ab5D11f04111B8BdF7C03BE9cF0e7', '20000000000000000000'],
-            from: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
+            args: [
+              Web3.utils.toWei('1', 'ether'), // amount to claim
+              Web3.utils.toWei(proofs[address].cumulativeAmount, 'ether'), // total allocated
+              '0', // cycle
+              proofs[address].proof
+            ],
             value: '0',
           })
         }
         >
-          Send 20 WXM
+          Send
         </button>
         {isLoading ? (
           <div style={{marginTop: 20}}>
