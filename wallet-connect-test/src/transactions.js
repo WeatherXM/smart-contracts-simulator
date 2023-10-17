@@ -1,8 +1,9 @@
 import { useAccount, useContractWrite, useBalance } from 'wagmi'
 import Web3 from 'web3'
 
-import contracts from '../src/contracts/config.json'
-import proofs from '../src/contracts/proofs.json'
+import contracts from './contracts/config.json'
+import proofs from './contracts/proofs.json'
+
 
 const Transactions = () => {
   const { address } = useAccount()
