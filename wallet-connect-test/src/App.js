@@ -4,7 +4,7 @@ import './App.css';
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react'
 
 import { WagmiConfig } from 'wagmi'
-import { arbitrumGoerli } from 'wagmi/chains'
+import { arbitrumGoerli, goerli } from 'wagmi/chains'
 
 import Transactions from './transactions'
 
@@ -19,13 +19,8 @@ const metadata = {
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
-const chains = [arbitrumGoerli]
+const chains = [arbitrumGoerli, goerli]
 const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata })
-
-const featuredWalletIds = [
-  'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96',
-  '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0'
-]
 
 const includeWalletIds = [
   'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96',

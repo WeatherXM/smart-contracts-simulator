@@ -10,14 +10,14 @@ const Transactions = () => {
   const balance = useBalance({
     token: contracts.tokenAddress,
     address: address,
-    chainId: 421613,
+    chainId: 5,
   })
 
   const { error, isLoading, isSuccess, write } = useContractWrite({
     address: contracts.rewardPoolAddress,
     abi: contracts.rewardPoolArtifact.abi,
     functionName: 'claim',
-    chainId: 421613,
+    chainId: 5,
   })
 
   return (
@@ -56,6 +56,8 @@ const Transactions = () => {
         {error ? (
           <div style={{marginTop: 20}}>
             {error.message}
+            {error.stack}
+            {error.name}
           </div>
         ) : null}
       </div>
