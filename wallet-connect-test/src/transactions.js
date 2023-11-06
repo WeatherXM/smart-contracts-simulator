@@ -1,22 +1,23 @@
 import { useAccount, useContractWrite, useBalance } from 'wagmi'
 import Web3 from 'web3'
 
-import contracts from '../src/contracts/config.json'
-import proofs from '../src/contracts/proofs.json'
+import contracts from './contracts/config.json'
+import proofs from './contracts/proofs.json'
+
 
 const Transactions = () => {
   const { address } = useAccount()
   const balance = useBalance({
     token: contracts.tokenAddress,
     address: address,
-    chainId: 421613,
+    chainId: 5,
   })
 
   const { error, isLoading, isSuccess, write } = useContractWrite({
     address: contracts.rewardPoolAddress,
     abi: contracts.rewardPoolArtifact.abi,
     functionName: 'claim',
-    chainId: 421613,
+    chainId: 5,
   })
 
   return (
@@ -55,6 +56,8 @@ const Transactions = () => {
         {error ? (
           <div style={{marginTop: 20}}>
             {error.message}
+            {error.stack}
+            {error.name}
           </div>
         ) : null}
       </div>
